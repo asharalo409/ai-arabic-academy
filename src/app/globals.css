@@ -1,0 +1,92 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root,
+[data-theme="emerald"] {
+  --bg-primary: #041c18;
+  --bg-secondary: #082924;
+  --bg-card: rgba(10, 46, 40, 0.72);
+  --text-primary: #f4f9f7;
+  --text-secondary: #a8cbc3;
+  --accent-primary: #10b981;
+  --accent-gold: #d4af37;
+  --border-color: rgba(212, 175, 55, 0.24);
+}
+
+[data-theme="midnight"] {
+  --bg-primary: #070d19;
+  --bg-secondary: #0e172a;
+  --bg-card: rgba(17, 27, 48, 0.78);
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --accent-primary: #38bdf8;
+  --accent-gold: #eab308;
+  --border-color: rgba(56, 189, 248, 0.24);
+}
+
+[data-theme="academic"] {
+  --bg-primary: #f8faf8;
+  --bg-secondary: #eef3ef;
+  --bg-card: rgba(255, 255, 255, 0.92);
+  --text-primary: #0f2922;
+  --text-secondary: #435e56;
+  --accent-primary: #047857;
+  --accent-gold: #b45309;
+  --border-color: rgba(4, 120, 87, 0.2);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.25s ease, color 0.25s ease;
+  overflow-x: hidden;
+}
+
+.arabic-text {
+  font-family: var(--font-arabic), "Amiri", "Scheherazade New", serif;
+  line-height: 2.15;
+  letter-spacing: 0;
+}
+
+.bangla-text {
+  font-family: var(--font-bangla), "Hind Siliguri", sans-serif;
+  line-height: 1.75;
+}
+
+.glass-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.22);
+}
+
+.gold-gradient-text {
+  background: linear-gradient(135deg, #f3d266 0%, #d4af37 50%, #b5891b 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-gold);
+}
