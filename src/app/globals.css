@@ -1,0 +1,88 @@
+
+@import "tailwindcss";
+
+:root {
+  --background: #080d19;
+  --foreground: #f8fafc;
+  --primary: #16c79a;
+  --secondary: #111c2e;
+  --muted: #94a3b8;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+  min-height: 100vh;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+::selection {
+  background: #16c79a;
+  color: #080d19;
+}
+
+.container {
+  width: min(1200px, 92%);
+  margin-inline: auto;
+}
+
+.gradient-text {
+  background: linear-gradient(90deg, #16c79a, #64e8c1);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+.glass {
+  background: rgba(17, 28, 46, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
+  border-radius: 18px;
+}
+
+.primary-button {
+  background: linear-gradient(135deg, #16c79a, #0da77f);
+  color: #04130f;
+  border: none;
+  border-radius: 12px;
+  padding: 13px 22px;
+  font-weight: 700;
+  transition: 0.2s ease;
+}
+
+.primary-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(22, 199, 154, 0.2);
+}
+
+@media (max-width: 640px) {
+  .container {
+    width: 90%;
+  }
+}
