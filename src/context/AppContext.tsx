@@ -5,136 +5,135 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 export type Language = "bn" | "en" | "ar";
 export type Theme = "emerald" | "midnight" | "academic";
 
+export interface QuizScoreRecord {
+  quizTitle: string;
+  score: number;
+  total: number;
+  date: string;
+}
+
 export interface StudentStats {
+  studentName: string;
+  dailyGoalMinutes: number;
   xp: number;
   streak: number;
+  studyMinutes: number;
   completedLessons: string[];
   learnedVocab: string[];
   favoriteVocab: string[];
-  quizScores: {
-    id: string;
-    title: string;
-    score: number;
-    total: number;
-    date: string;
-  }[];
-  studyMinutes: number;
-  dailyGoalMinutes: number;
+  quizScores: QuizScoreRecord[];
   lastActiveDate: string;
 }
 
 interface AppContextType {
-  lang: Language;
-  setLang: (lang: Language) => void;
+  language: Language;
+  setLanguage: (lang: Language) => void;
   theme: Theme;
   setTheme: (theme: Theme) => void;
-  isRTL: boolean;
-  t: (bn: string, en: string, ar: string) => string;
   stats: StudentStats;
-  addXP: (amount: number) => void;
+  addXP: (amount: number, minutes?: number) => void;
   markLessonComplete: (lessonId: string) => void;
+  toggleLearnedVocab: (wordId: string) => void;
   toggleFavoriteVocab: (wordId: string) => void;
-  markVocabLearned: (wordId: string) => void;
-  recordQuizScore: (title: string, score: number, total: number) => void;
-  addStudyMinutes: (minutes: number) => void;
+  recordQuizScore: (quizTitle: string, score: number, total: number) => void;
+  updateProfile: (updates: { studentName?: string; dailyGoalMinutes?: number }) => void;
+  t: (bn: string, en: string, ar?: string) => string;
 }
 
 const DEFAULT_STATS: StudentStats = {
-  xp: 120,
+  studentName: "Taseen Billah",
+  dailyGoalMinutes: 20,
+  xp: 0,
   streak: 1,
+  studyMinutes: 0,
   completedLessons: [],
   learnedVocab: [],
   favoriteVocab: [],
   quizScores: [],
-  studyMinutes: 15,
-  dailyGoalMinutes: 30,
   lastActiveDate: new Date().toISOString().split("T")[0],
 };
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [lang, setLangState] = useState<Language>("bn");
+  const [language, setLanguageState] = useState<Language>("bn");
   const [theme, setThemeState] = useState<Theme>("emerald");
   const [stats, setStats] = useState<StudentStats>(DEFAULT_STATS);
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
     try {
-      const savedLang = localStorage.getItem("aaa_lang") as Language | null;
+      const savedLang = localStorage.getItem("aaa_language") as Language | null;
       const savedTheme = localStorage.getItem("aaa_theme") as Theme | null;
       const savedStats = localStorage.getItem("aaa_stats");
 
       if (savedLang && ["bn", "en", "ar"].includes(savedLang)) {
-        setLangState(savedLang);
+        setLanguageState(savedLang);
       }
       if (savedTheme && ["emerald", "midnight", "academic"].includes(savedTheme)) {
         setThemeState(savedTheme);
       }
       if (savedStats) {
-        const parsed = JSON.parse(savedStats) as StudentStats;
-        const today = new Date().toISOString().split("T")[0];
-        if (parsed.lastActiveDate !== today) {
-          const yesterday = new Date(Date.now() - 86400000)
-            .toISOString()
-            .split("T")[0];
-          const updatedStreak =
-            parsed.lastActiveDate === yesterday ? parsed.streak + 1 : 1;
-          const updated = {
-            ...parsed,
-            streak: updatedStreak,
-            lastActiveDate: today,
-          };
-          setStats(updated);
-          localStorage.setItem("aaa_stats", JSON.stringify(updated));
-        } else {
-          setStats(parsed);
-        }
+        const parsed = JSON.parse(savedStats);
+        setStats((prev) => ({
+          ...prev,
+          ...parsed,
+          studentName: parsed.studentName || "Taseen Billah",
+          dailyGoalMinutes: parsed.dailyGoalMinutes || 20,
+        }));
       }
     } catch {
-      // Fallback safely if localStorage is unavailable
+      // Ignore storage errors
     }
   }, []);
 
   useEffect(() => {
-    if (!mounted) return;
-    document.documentElement.setAttribute("data-theme", theme);
-    localStorage.setItem("aaa_theme", theme);
-  }, [theme, mounted]);
-
-  useEffect(() => {
-    if (!mounted) return;
-    document.documentElement.setAttribute("lang", lang);
-    document.documentElement.setAttribute("dir", lang === "ar" ? "rtl" : "ltr");
-    localStorage.setItem("aaa_lang", lang);
-  }, [lang, mounted]);
+    if (typeof document !== "undefined") {
+      document.documentElement.setAttribute("data-theme", theme);
+      document.documentElement.lang = language;
+      document.documentElement.dir = language === "ar" ? "rtl" : "ltr";
+    }
+  }, [theme, language]);
 
   const saveStats = (updater: (prev: StudentStats) => StudentStats) => {
     setStats((prev) => {
+      const today = new Date().toISOString().split("T")[0];
       const next = updater(prev);
+      const updatedWithDate: StudentStats = {
+        ...next,
+        lastActiveDate: today,
+      };
       try {
-        localStorage.setItem("aaa_stats", JSON.stringify(next));
+        localStorage.setItem("aaa_stats", JSON.stringify(updatedWithDate));
       } catch {
         // Ignore storage errors
       }
-      return next;
+      return updatedWithDate;
     });
   };
 
-  const setLang = (newLang: Language) => setLangState(newLang);
-  const setTheme = (newTheme: Theme) => setThemeState(newTheme);
-
-  const t = (bn: string, en: string, ar: string) => {
-    if (lang === "ar") return ar;
-    if (lang === "en") return en;
-    return bn;
+  const setLanguage = (lang: Language) => {
+    setLanguageState(lang);
+    try {
+      localStorage.setItem("aaa_language", lang);
+    } catch {
+      // Ignore
+    }
   };
 
-  const addXP = (amount: number) => {
+  const setTheme = (newTheme: Theme) => {
+    setThemeState(newTheme);
+    try {
+      localStorage.setItem("aaa_theme", newTheme);
+    } catch {
+      // Ignore
+    }
+  };
+
+  const addXP = (amount: number, minutes = 2) => {
     saveStats((prev) => ({
       ...prev,
       xp: prev.xp + amount,
+      studyMinutes: prev.studyMinutes + minutes,
     }));
   };
 
@@ -150,38 +149,41 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
+  const toggleLearnedVocab = (wordId: string) => {
+    saveStats((prev) => {
+      const exists = prev.learnedVocab.includes(wordId);
+      const updated = exists
+        ? prev.learnedVocab.filter((id) => id !== wordId)
+        : [...prev.learnedVocab, wordId];
+      return {
+        ...prev,
+        xp: exists ? prev.xp : prev.xp + 10,
+        learnedVocab: updated,
+      };
+    });
+  };
+
   const toggleFavoriteVocab = (wordId: string) => {
     saveStats((prev) => {
       const exists = prev.favoriteVocab.includes(wordId);
+      const updated = exists
+        ? prev.favoriteVocab.filter((id) => id !== wordId)
+        : [...prev.favoriteVocab, wordId];
       return {
         ...prev,
-        favoriteVocab: exists
-          ? prev.favoriteVocab.filter((id) => id !== wordId)
-          : [...prev.favoriteVocab, wordId],
+        favoriteVocab: updated,
       };
     });
   };
 
-  const markVocabLearned = (wordId: string) => {
-    saveStats((prev) => {
-      if (prev.learnedVocab.includes(wordId)) return prev;
-      return {
-        ...prev,
-        xp: prev.xp + 10,
-        learnedVocab: [...prev.learnedVocab, wordId],
-      };
-    });
-  };
-
-  const recordQuizScore = (title: string, score: number, total: number) => {
+  const recordQuizScore = (quizTitle: string, score: number, total: number) => {
     saveStats((prev) => ({
       ...prev,
       xp: prev.xp + score * 15,
       studyMinutes: prev.studyMinutes + 5,
       quizScores: [
         {
-          id: `${Date.now()}`,
-          title,
+          quizTitle,
           score,
           total,
           date: new Date().toLocaleDateString(),
@@ -191,29 +193,42 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }));
   };
 
-  const addStudyMinutes = (minutes: number) => {
+  const updateProfile = (updates: {
+    studentName?: string;
+    dailyGoalMinutes?: number;
+  }) => {
     saveStats((prev) => ({
       ...prev,
-      studyMinutes: prev.studyMinutes + minutes,
+      ...(updates.studentName !== undefined
+        ? { studentName: updates.studentName }
+        : {}),
+      ...(updates.dailyGoalMinutes !== undefined
+        ? { dailyGoalMinutes: updates.dailyGoalMinutes }
+        : {}),
     }));
+  };
+
+  const t = (bn: string, en: string, ar?: string) => {
+    if (language === "bn") return bn;
+    if (language === "ar") return ar || en;
+    return en;
   };
 
   return (
     <AppContext.Provider
       value={{
-        lang,
-        setLang,
+        language,
+        setLanguage,
         theme,
         setTheme,
-        isRTL: lang === "ar",
-        t,
         stats,
         addXP,
         markLessonComplete,
+        toggleLearnedVocab,
         toggleFavoriteVocab,
-        markVocabLearned,
         recordQuizScore,
-        addStudyMinutes,
+        updateProfile,
+        t,
       }}
     >
       {children}
@@ -222,9 +237,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function useApp() {
-  const ctx = useContext(AppContext);
-  if (!ctx) {
-    throw new Error("useApp must be used inside AppProvider");
+  const context = useContext(AppContext);
+  if (!context) {
+    throw new Error("useApp must be used within an AppProvider");
   }
-  return ctx;
+  return context;
 }
